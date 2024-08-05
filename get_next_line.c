@@ -1,0 +1,167 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   get_next_line.c                                    :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: belamiqu <belamiqu@student.42urduliz.co    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2023/11/15 11:22:37 by belamiqu          #+#    #+#             */
+/*   Updated: 2023/11/17 17:41:07 by belamiqu         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "get_next_line.h"
+
+char	*append_buffer(char *basin_buffer, char *read_buffer)
+{
+	char	*temp;
+
+	temp = ft_gnlstrjoin(basin_buffer, read_buffer);
+	if (basin_buffer)
+	{
+		free(basin_buffer);
+	}
+	return (temp);
+}
+
+char	*read_from_file(char *basin_buffer, int fd)
+{
+	char	*cup_buffer;
+	int		bytes_read;
+
+	cup_buffer = ft_gnlcalloc((BUFFER_SIZE + 1), sizeof(char));
+	if (!cup_buffer)
+		return (NULL);
+	bytes_read = 1;
+	while (bytes_read > 0)
+	{
+	bytes_read = read(fd, cup_buffer, BUFFER_SIZE);
+		if (bytes_read == -1)
+		{
+			free(cup_buffer);
+			free(basin_buffer);
+			basin_buffer = NULL;
+			return (NULL);
+		}
+			cup_buffer[bytes_read] = '\0';
+			basin_buffer = append_buffer(basin_buffer, cup_buffer);
+		if (ft_gnlstrchr(basin_buffer, '\n'))
+			break ;
+	}
+	free (cup_buffer);
+	return (basin_buffer);
+}
+
+char	*extract_line(char *buffer)
+{
+	char	*line;
+	int		i;
+
+	i = 0;
+	if (!buffer[i])
+		return (NULL);
+	while (buffer[i] != '\n' && buffer[i] != '\0')
+		i++;
+	line = (char *)malloc(sizeof(char) * (i + 2));
+	if (!line)
+		return (NULL);
+	i = 0;
+	while (buffer[i] != '\n' && buffer[i])
+	{
+		line[i] = buffer[i];
+		i++;
+	}
+	if (buffer[i] == '\n')
+	{
+		line[i] = buffer[i];
+		i++;
+	}
+	line[i] = '\0';
+	return (line);
+}
+
+char	*obtain_remaining(char *buffer)
+{
+	char	*end_of_line;
+	size_t	remaining_length;
+	char	*remaining;
+
+	if (buffer == NULL)
+		return (NULL);
+	end_of_line = ft_gnlstrchr(buffer, '\n');
+	if (end_of_line == NULL)
+	{
+		free(buffer);
+		return (NULL);
+	}
+	remaining_length = ft_gnlstrlen(end_of_line + 1);
+	remaining = malloc(remaining_length + 1);
+	if (remaining == NULL)
+	{
+		free (buffer);
+		return (NULL);
+	}
+	gnlstrcpy(remaining, end_of_line + 1);
+	free(buffer);
+	return (remaining);
+}
+
+char	*get_next_line(int fd)
+{
+	static char	*basin_buffer = NULL;
+	char		*line;
+
+	if (fd < 0 && read(fd, NULL, 0) < 0 || BUFFER_SIZE <= 0)
+		return (NULL);
+	if (!basin_buffer)
+	basin_buffer = ft_gnlcalloc(1, sizeof (char));
+	if (!ft_gnlstrchr(basin_buffer, '\n'))
+	basin_buffer = read_from_file(basin_buffer, fd);
+	if (!basin_buffer)
+	{
+		free(basin_buffer);
+		basin_buffer = NULL;
+		return (NULL);
+	}
+	line = extract_line(basin_buffer);
+	basin_buffer = obtain_remaining(basin_buffer);
+	return (line);
+}
+
+int main (void)
+{
+	int fd;
+	int fd1;
+	int fd2;
+	int fd3;
+	char *line;
+	int count;
+
+	count = 0;
+	fd = open("example.txt", O_RDONLY);
+	fd1 = open("parejas.txt", O_RDONLY);
+	fd2 = open("primavera.txt", O_RDONLY);
+	fd3 = open ("multiple_nl.txt", O_RDONLY);
+	
+	if (fd == -1)
+	{
+		printf("Error opening file");
+		return (1);
+	}
+	while(1)
+	{
+	printf("\n");
+	line = get_next_line(fd);
+	if(line == NULL)
+		break;
+	count++;
+	printf("line[%d]:%s\n",count, line);
+	free(line);
+	line = NULL;
+	}
+	close(fd);
+	if(!line)
+	printf("line[%d]:%s\n",count, line);
+	 system ("leaks a.out");
+	return(0);
+}
