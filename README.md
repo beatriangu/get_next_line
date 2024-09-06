@@ -8,7 +8,7 @@ Medium - Get Next Line: A comprehensive tutorial on implementing and understandi
 
 Nikito - Get Next Line: A detailed guide with examples and best practices for implementing Get Next Line. Useful for practical tips and code snippets.
 
-<p align="center">
+<p align="left">
   <img src="https://github.com/user-attachments/assets/7235dc66-b8e3-435e-9bc0-4f933924d826" alt="Screenshot from 2024-09-06 16-37-46" width="150"/>
 </p>
 
